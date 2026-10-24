@@ -10,8 +10,13 @@ Every scenario is a bounded, reversible change inside the sandbox:
   db_overload expensive parallel queries inside PostgreSQL, restored by cancelling them
   traffic     sudden traffic spike from concurrent synthetic users
   combined    traffic spike while a service is down
+  net         Linux network fault in one container's namespace (tc netem / tbf, iptables):
+              latency + jitter, packet loss, bandwidth limit, corruption, a dropped or reset link
+              between two services, or a DNS outage; restored by removing the qdisc / rules
 """
 from __future__ import annotations
+
+from .netem import LINK_CALLER
 
 # Services the agent and operator may target with container faults. The proxy and
 # the observability stack are excluded: breaking them would blind the experiment.
@@ -139,6 +144,50 @@ SCENARIOS: dict[str, dict] = {
         "default": "20 users",
         "hypothesis": "If traffic spikes while {target} is down, the failure stays contained to features "
                       "that need {target} and the rest of the shop absorbs the load."},
+    # --------------------------------------------------------- network faults
+    "net-latency": {
+        "kind": "net", "net": "delay", "target": "product-catalog", "targets": CONTAINER_TARGETS,
+        "category": "Network", "title": "Network latency + jitter (tc netem)",
+        "variants": ["100ms", "300ms", "1000ms"], "default": "300ms",
+        "hypothesis": "If every packet leaving {target} is delayed (with jitter), callers see the added "
+                      "round trips on each call but stay within their timeouts; unrelated paths are unaffected."},
+    "net-packet-loss": {
+        "kind": "net", "net": "loss", "target": "product-catalog", "targets": CONTAINER_TARGETS,
+        "category": "Network", "title": "Packet loss (tc netem)", "variants": ["5%", "15%", "30%"],
+        "default": "15%",
+        "hypothesis": "If {target} drops a share of its packets, TCP retransmits them: calls get slower "
+                      "and spikier (retransmission timeouts) but mostly still succeed."},
+    "net-bandwidth": {
+        "kind": "net", "net": "bandwidth", "target": "image-provider", "targets": CONTAINER_TARGETS,
+        "category": "Network", "title": "Bandwidth limit (tc token bucket)",
+        "variants": ["1mbit", "256kbit"], "default": "256kbit",
+        "hypothesis": "If {target}'s link is throttled, large responses (images, product lists) slow down "
+                      "while small API calls are barely affected."},
+    "net-corruption": {
+        "kind": "net", "net": "corrupt", "target": "product-catalog", "targets": CONTAINER_TARGETS,
+        "category": "Network", "title": "Packet corruption + duplication (tc netem)",
+        "variants": ["1%", "5%"], "default": "5%",
+        "hypothesis": "If {target}'s packets are corrupted or duplicated, checksums discard the bad ones "
+                      "and TCP retransmits and de-duplicates: requests slow down but data stays correct."},
+    "net-link-blackhole": {
+        "kind": "net", "net": "blackhole", "target": "payment", "targets": sorted(LINK_CALLER),
+        "category": "Network", "title": "Silent link failure between two services (packets dropped)",
+        "variants": ["drop"], "default": "drop",
+        "hypothesis": "If {caller} can no longer reach {target} (packets silently dropped, other callers "
+                      "unaffected), {caller}'s calls to {target} time out and fail within their deadline "
+                      "instead of hanging the customer."},
+    "net-link-reset": {
+        "kind": "net", "net": "reset", "target": "payment", "targets": sorted(LINK_CALLER),
+        "category": "Network", "title": "Connection reset between two services (TCP RST)",
+        "variants": ["reset"], "default": "reset",
+        "hypothesis": "If {caller}'s connections to {target} are refused with TCP resets, the failure is "
+                      "immediate: calls fail fast with a clear error and recover as soon as the link is back."},
+    "net-dns-outage": {
+        "kind": "net", "net": "dns", "target": "checkout", "targets": CONTAINER_TARGETS,
+        "category": "Network", "title": "DNS outage (resolver unreachable)", "variants": ["drop"],
+        "default": "drop",
+        "hypothesis": "If {target} cannot resolve service names, calls on already-open connections keep "
+                      "working and only new connections fail; nothing hangs indefinitely."},
 }
 
 # User-facing endpoints exercised by every synthetic journey, and the services they use.
@@ -188,7 +237,8 @@ def scenario_view(sid: str, target: str | None = None) -> dict:
     spec = dict(SCENARIOS[sid])
     spec["id"] = sid
     spec["target"] = target or spec["target"]
-    spec["hypothesis"] = spec["hypothesis"].replace("{target}", spec["target"])
+    spec["hypothesis"] = spec["hypothesis"].replace("{target}", spec["target"]).replace(
+        "{caller}", LINK_CALLER.get(spec["target"], "its caller"))
     return spec
 
 
@@ -292,6 +342,13 @@ KIND_NOTE = {
     "cpu": "Visible on frontend (whole shop slow) and ad; CPU-light services (shipping, quote, email, "
            "image-provider) barely notice.",
     "combined": "Target is down while extra traffic hits the shop.",
+    "delay": "Every network round trip of the target is slower; pages that call it several times add up.",
+    "loss": "Lost packets are retransmitted after a timeout (200 ms+), so responses get slow and uneven.",
+    "bandwidth": "Big responses (images, product lists) crawl; tiny API calls barely notice.",
+    "corrupt": "Corrupted packets are dropped by checksum and resent: slower, never wrong.",
+    "blackhole": "Only the one caller loses the target; calls hang until that caller's timeout.",
+    "reset": "Only the one caller loses the target; calls fail immediately (connection refused).",
+    "dns": "Only NEW connections fail (name lookup); services that keep connections open look fine.",
 }
 
 
@@ -304,7 +361,15 @@ def shop_view(sid: str, target: str | None = None) -> dict:
     else:
         view = dict(TARGET_VIEW.get(target, {"path": "/", "steps": ["Reload the shop"], "visibility": "low",
                                              "expect": "Effect depends on the target."}))
-        view["expect"] = f"{view['expect']} {KIND_NOTE.get(spec['kind'], '')}".strip()
+        note = KIND_NOTE.get(spec.get("net") or spec["kind"], "")
+        if spec.get("net") in ("delay", "loss", "bandwidth", "corrupt"):
+            # Degradation, not an outage: the same pages, just slower.
+            view["expect"] = f"Pages that need {target} still work but load noticeably slower."
+            view["visibility"] = "medium" if view["visibility"] != "none" else "none"
+            view["presenter"] = {"variant": spec["variants"][-1]}     # the most visible intensity
+        elif spec.get("net") == "dns":
+            view["visibility"] = "low"
+        view["expect"] = f"{view['expect']} {note}".strip()
         if spec["kind"] == "cpu" and target not in ("frontend", "ad", "recommendation", "product-catalog"):
             view["visibility"] = "low"
     view.setdefault("presenter", {})

@@ -146,12 +146,37 @@ make start                      # sandbox must be running
 python -m demo.server           # http://127.0.0.1:8099
 ```
 
-- **19 fault scenarios across 10 categories:** flagd faults built into the services (payment, cart, catalog, ads, email, recommendation, DB lock contention, slow images, shipping), container crash, hang, network partition, CPU starvation, database overload, traffic spike, and traffic spike plus crash.
+- **27 fault scenarios across 11 categories:** flagd faults built into the services (payment, cart, catalog, ads, email, recommendation, DB lock contention, slow images, shipping), container crash, hang, network partition, CPU starvation, database overload, traffic spike, traffic spike plus crash, and **7 network-layer faults** (latency and jitter, packet loss, bandwidth limit, corruption, a dropped or reset link between two services, DNS outage).
+- **Network layer:** a dashboard panel shows the Docker bridge (subnet, gateway), every container's IP, MAC, listening ports and traffic, and the network faults active right now. Network runs add TCP evidence from the fault container's own namespace (retransmissions, SYN retries, failed connects, resets, RTT) and per-hop network time from traces. See [Networking concepts](#networking-concepts-demonstrated).
 - **Safety:** health gate before injection; auto-stop when the shop goes down, the blast radius spreads to unrelated paths, or error rate or latency exceed limits; 60 s hard cap; kill switch. Every fault is journaled before it is applied and restored on finish, abort, crash or restart. Flag restores are verified against what flagd actually serves.
 - **Evidence:** 10 customer paths probed independently, Jaeger error chains, Prometheus span-metric errors, container logs and state, blast radius versus the dependency graph, and a deterministic 0-100 resilience score.
 - **Agents (LangGraph):** *planner* (dependency map → ranked experiments → safety validator), *analyst* (read-only tools → ranked findings → code fix that is syntax-checked and retried → grounding reviewer), *campaign* (ranked weaknesses across runs). Uses free-tier Gemini with automatic model fallback on quota limits.
 - **Auto-fix:** validated fixes to interpreted services (payment, recommendation, email) are hot-patched through a generated Compose overlay with rollback. The same experiment is then re-run and compared. Compiled services get a saved patch for an image rebuild.
 - **Report:** Markdown findings report export. See [docs/PRESENTATION.md](docs/PRESENTATION.md).
+
+## Networking concepts demonstrated
+
+The network faults act at the Linux kernel level inside one container's **network namespace**, using
+the same tools an SRE uses on a real host. A short-lived helper container ([deploy/nettools](deploy/nettools/Dockerfile),
+Alpine + iproute2 + iptables) is started with `--network container:<target>`, so it shares that
+namespace and changes nothing else. Implementation: [demo/netem.py](demo/netem.py), evidence: [demo/network.py](demo/network.py).
+
+| Scenario | Mechanism | Concept it shows |
+|---|---|---|
+| Network latency + jitter | `tc qdisc replace dev eth0 root netem delay 300ms 100ms distribution normal` | Queueing discipline on egress; RTT budget vs client timeouts |
+| Packet loss | `tc ... netem loss 15%` | TCP retransmission and retransmission timeouts (RTO) turning loss into tail latency |
+| Bandwidth limit | `tc ... tbf rate 256kbit burst 32kbit latency 400ms` | Token-bucket shaping; throughput vs latency for large vs small responses |
+| Corruption + duplication | `tc ... netem corrupt 5% duplicate 5%` | Checksums discard corrupt segments; TCP sequence numbers de-duplicate |
+| Silent link failure | `iptables -I OUTPUT -d <peer-ip> -j DROP` in the caller only | Partial partition; SYNs vanish so callers hang until their connect/RPC deadline |
+| Connection reset | `iptables ... -p tcp -j REJECT --reject-with tcp-reset` | RST makes failure immediate: fail-fast vs hang (compare with the DROP case) |
+| DNS outage | `iptables ... -d 127.0.0.11 -j DROP` (UDP and TCP) | Docker's embedded resolver; only *new* connections fail, pooled ones survive |
+
+How each run measures the network:
+
+- **Rules verified in the namespace** right after injection (`tc qdisc show`, `iptables -S`), not just "command succeeded".
+- **TCP counters** from `nstat` (`TcpRetransSegs`, `TcpExtTCPSynRetrans`, `TcpAttemptFails`, `TcpOutRsts`, …) and connection **RTT** from `ss -ti`, baseline window vs fault window.
+- **Per-hop network time** from Jaeger: for each caller → callee call, client span duration minus server span duration separates time on the wire (and in transport stacks) from time inside the service.
+- **Restore is verified**: the undo removes the qdisc and every rule tagged `faultline-fault`, then checks the namespace is clean. A crashed run is cleaned up from the fault journal on the next start; a restarted container gets a fresh namespace anyway.
 
 ## Safety model
 

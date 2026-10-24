@@ -183,6 +183,7 @@ function handle(ev) {
       live.timeline[d.name] = d.t;
       phaseClock = { name: d.name, at: Date.now(), note: d.description || (d.results || []).join("; ") || (d.ttr != null ? `recovered in ${d.ttr}s` : "") };
       $("#end-fault").disabled = !["inject", "fault"].includes(d.name);
+      if (["fault", "restore"].includes(d.name)) renderNetwork();   // active rules appear / disappear
       if (d.name === "fault" && $("#presenter").checked && shopWin && !shopWin.closed && shopView) {
         shopWin.location.href = shopUrl() + shopView.path;   // fresh load: the fault is live now
       }
@@ -200,7 +201,7 @@ function handle(ev) {
     case "evidence":
       live.record = d; live.records = d.requests || live.records; live.timeline = d.timeline || live.timeline; live.run ||= d;
       line(d.status === "aborted" ? `Stopped safely: ${d.abort_reason}` : "Evidence collected; AI analyst investigating…", d.status === "aborted" ? "warn" : "");
-      renderLive(); renderEvidence(); renderTopology(); renderMeta(); loadStatus();
+      renderLive(); renderEvidence(); renderTopology(); renderMeta(); loadStatus(); renderNetwork(true);
       break;
     case "agent": feed.push(d); renderFeed(); if (d.kind === "error" && findings) renderFindings(); break;
     case "analysis":
@@ -470,6 +471,8 @@ function renderEvidence() {
     html = `<table><tr><th>Service</th><th>Status</th><th>Health</th><th>Restarts</th><th>OOM</th><th>Mem limit</th><th>Started</th></tr>` +
       Object.values(rec.containers || {}).map((c) => `<tr><td>${esc(c.service)}</td><td>${esc(c.status)}</td><td>${esc(c.health ?? "–")}</td><td>${esc(c.restart_count)}</td><td>${c.oom_killed ? '<span class="tag err">yes</span>' : "no"}</td><td>${esc(c.memory_limit_mb ?? "–")} MB</td><td>${esc((c.started_at || "").slice(11, 19))}</td></tr>`).join("") + "</table>" +
       `<p class="muted">Restore actions: ${esc((rec.restore_results || []).join("; "))}. Flags clean: ${rec.flags_clean}. Faults left active: ${rec.active_faults_left}.</p>`;
+  } else if (evTab === "network") {
+    html = networkEvidenceHtml(rec.network);
   } else {
     const s = rec.endpoint_stats;
     html = `<table><tr><th>Path</th><th>Baseline</th><th>Under fault</th><th>Recovery</th><th>Fault errors</th></tr>` + Object.keys(s.baseline).map((ep) => {
@@ -481,6 +484,51 @@ function renderEvidence() {
 }
 
 // ==================================================================== feed
+/** Bytes as a short human string (kB / MB / GB). */
+const bytes = (n) => n == null ? "–" : n >= 1e9 ? `${(n / 1e9).toFixed(1)} GB` : n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} kB`;
+
+/** Fetch the sandbox network (subnet, container IPs, ports, traffic, active fault rules) and render it. */
+async function renderNetwork(fresh = false) {
+  let net;
+  try {
+    net = await (await fetch(`/api/network${fresh ? "?fresh=1" : ""}`)).json();
+  } catch { net = { error: "network view unavailable" }; }
+  if (!net || net.error) { $("#net-summary").innerHTML = `<p class="muted">${esc(net?.error || "Network view unavailable (is Docker running?)")}</p>`; $("#net-table").innerHTML = ""; return; }
+  const rules = net.active_rules || [];
+  $("#net-summary").innerHTML = `<dl><dt>Network</dt><dd>${esc(net.network)} (${esc(net.driver)})</dd>
+    <dt>Subnet</dt><dd>${esc(net.subnet)}</dd><dt>Gateway</dt><dd>${esc(net.gateway)}</dd>
+    <dt>Containers</dt><dd>${net.containers.length}</dd><dt>Read at</dt><dd>${esc(net.read_at || "")}</dd></dl>
+    <h4 class="sub-h">Network faults active now</h4>${rules.length ? rules.map((r) => `<span class="rule">${esc(r.service)}: ${esc(r.mechanism)}${r.peer ? ` → ${esc(r.peer)}` : ""}${r.dev ? ` on ${esc(r.dev)}` : ""}${r.iptables.length ? `<br>${r.iptables.map(esc).join("<br>")}` : ""}</span>`).join("") : '<p class="muted">None: every namespace is clean.</p>'}`;
+  const faulted = new Set(rules.flatMap((r) => [r.service, r.peer]));
+  $("#net-table").innerHTML = `<table><tr><th>Service</th><th>IP</th><th>MAC</th><th>Listening TCP ports</th><th class="num">Received</th><th class="num">Sent</th></tr>${net.containers.map((c) => `<tr><td>${faulted.has(c.service) ? '<span class="tag err">fault</span> ' : ""}${esc(c.service)}</td><td><code>${esc(c.ip)}</code></td><td><code>${esc(c.mac || "–")}</code></td><td><code>${esc((c.ports || []).join(", ") || "–")}</code></td><td class="num">${bytes(c.rx_bytes)}</td><td class="num">${bytes(c.tx_bytes)}</td></tr>`).join("")}</table>`;
+}
+
+/** A metric cell with the change from baseline (red when it got worse). */
+function deltaCell(b, f, unit = "", higherIsWorse = true) {
+  if (f == null) return "–";
+  const worse = b != null && (higherIsWorse ? f > b * 1.2 + 0.01 : f < b * 0.8);
+  return `<span class="${worse ? "delta-up" : ""}">${f}${unit}</span>`;
+}
+
+/** Network evidence of a run: verified rules, TCP behaviour baseline vs fault, per-hop network time. */
+function networkEvidenceHtml(n) {
+  if (!n) return `<p class="muted">No network evidence for this run (the fault's container could not be observed).</p>`;
+  const b = n.baseline || {}, f = n.fault || {};
+  const rows = [["Segments sent / s", "segments_out_per_s", ""], ["Retransmissions / s", "retransmits_per_s", ""],
+    ["Retransmitted share", "retransmit_pct", " %"], ["SYN retransmissions", "syn_retransmits", ""],
+    ["Retransmission timeouts", "timeouts", ""], ["Failed connection attempts", "connect_failures", ""],
+    ["Resets sent", "resets_sent", ""], ["New connections", "new_connections", ""],
+    ["Median RTT of open connections", "rtt_p50_ms", " ms"], ["Max RTT", "rtt_max_ms", " ms"]];
+  const rules = n.rules ? [...(n.rules.qdisc || []), ...(n.rules.iptables || [])] : [];
+  return `<div class="muted">TCP counters (<code>nstat</code>) and sockets (<code>ss</code>) read inside <b>${esc(n.service)}</b>'s network namespace</div>
+    ${rules.length ? `<h4>Rules verified while the fault was active</h4>${rules.map((r) => `<span class="rule">${esc(r)}</span>`).join("")}` : ""}
+    <table><tr><th>TCP</th><th class="num">Baseline (${esc(b.seconds ?? "–")} s)</th><th class="num">Under fault (${esc(f.seconds ?? "–")} s)</th></tr>
+    ${rows.map(([label, key, unit]) => `<tr><td>${label}</td><td class="num">${b[key] ?? "–"}${b[key] != null ? unit : ""}</td><td class="num">${deltaCell(b[key], f[key], unit)}</td></tr>`).join("")}</table>
+    <h4>Per-hop time from traces: network + transport vs inside the service</h4>
+    ${(n.hops || []).length ? `<table><tr><th>Hop</th><th class="num">Network, baseline</th><th class="num">Network, fault</th><th class="num">Server, baseline</th><th class="num">Server, fault</th></tr>${n.hops.map((h) => `<tr><td><code>${esc(h.edge)}</code></td><td class="num">${h.baseline_network_ms ?? "–"} ms</td><td class="num">${deltaCell(h.baseline_network_ms, h.fault_network_ms, " ms")}</td><td class="num">${h.baseline_server_ms ?? "–"} ms</td><td class="num">${deltaCell(h.baseline_server_ms, h.fault_server_ms, " ms")}</td></tr>`).join("")}</table>
+      <p class="muted">Network time = client span minus server span for the same call: time on the wire plus the client and server transport stacks.</p>` : '<p class="muted">No traced hop touched this service (or calls failed before reaching it).</p>'}`;
+}
+
 /** Render the agent activity feed with model call count and time. */
 function renderFeed() {
   if (!feed.length) { $("#feed").innerHTML = `<p class="muted">Agent steps stream here.</p>`; return; }
@@ -636,6 +684,7 @@ $("#variant").addEventListener("change", () => {});
 $("#presenter").addEventListener("change", () => { if ($("#presenter").checked) applyPresenterDefaults(); renderShopView(); });
 $("#end-fault").addEventListener("click", async () => { $("#end-fault").disabled = true; await post("/api/end-fault", {}); });
 $("#target").addEventListener("change", () => { if (!live.run) $("#hypothesis").textContent = status.scenarios[$("#scenario").value].hypothesis.replaceAll("{target}", $("#target").value); });
+$("#net-refresh").addEventListener("click", () => renderNetwork(true));
 $("#tabs").addEventListener("click", (e) => { if (e.target.dataset.tab) { evTab = e.target.dataset.tab; renderEvidence(); } });
 $("#run").addEventListener("click", () => {
   startJob("/api/run", designerParams());
@@ -682,7 +731,7 @@ document.addEventListener("keydown", (e) => {
   await loadStatus();
   const p = await (await fetch("/api/plan")).json();
   if (p.experiments) { plan = p; renderPlan(); }
-  renderLive(); renderTopology();
+  renderLive(); renderTopology(); renderNetwork();
   if (status.busy) connect();
   setInterval(() => { if (!busy) loadStatus(); }, 15000);
 })();

@@ -302,7 +302,7 @@ def plan_experiments(emit: Emit, history: list[dict]) -> dict:
         crit = topology.criticality(g["edges"])
         services = {s: {"user_paths": len(v["endpoints"]), "callers": v["callers"]}
                     for s, v in crit.items() if s not in EXCLUDED_TARGETS and s != "users"}
-        catalog = {sid: {"kind": s["kind"], "category": s["category"], "title": s["title"],
+        catalog = {sid: {"kind": s["kind"], "mechanism": s.get("net"), "category": s["category"], "title": s["title"],
                          "targets": s.get("targets", [s["target"]]), "variants": s["variants"]}
                    for sid, s in SCENARIOS.items()}
         edges = [f'{e["from"]}->{e["to"]}' + (f' ({e["calls"]} calls/h)' if e.get("calls") else "")
@@ -505,6 +505,13 @@ def make_tools(run: dict) -> list:
         return _cap(container_state(service))
 
     @tool
+    def get_network_evidence() -> str:
+        """Network-layer evidence: tc/iptables rules verified in the fault container's namespace, its
+        TCP counters baseline vs fault (retransmissions, SYN retries, timeouts, failed connects, resets,
+        RTT), and per-hop network+transport time vs server time from traces."""
+        return _cap(run.get("network") or "No network evidence was captured for this run.")
+
+    @tool
     def list_source_files(service: str) -> str:
         """List application source files of a service (paths relative to src/)."""
         try:
@@ -529,7 +536,7 @@ def make_tools(run: dict) -> list:
             return str(error)
 
     return [get_experiment_summary, get_blast_radius, get_endpoint_stats, get_failed_trace, get_error_spans,
-            get_service_logs, get_container_state, list_source_files, read_source, search_source]
+            get_service_logs, get_container_state, get_network_evidence, list_source_files, read_source, search_source]
 
 
 def _headline(run: dict) -> str:

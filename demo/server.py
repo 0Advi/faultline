@@ -17,6 +17,7 @@
   POST /api/abort               kill switch: stop and restore every active fault now
   POST /api/end-fault           end the current fault early (restored; the run still completes)
   GET  /api/shop-view           where and how a scenario shows in the shop tab
+  GET  /api/network[?fresh=1]   sandbox network: subnet, container IPs, ports, traffic, active rules
 
 Usage: python -m demo.server [--port 8099]
 """
@@ -34,7 +35,7 @@ from urllib.parse import parse_qs
 
 from controller.observer.endpoints import app_url
 
-from . import agent, autofix, evidence, faults, report, topology
+from . import agent, autofix, evidence, faults, network, report, topology
 from .catalog import CONTAINER_TARGETS, ENDPOINTS, EXCLUDED_TARGETS, SCENARIOS, shop_view
 from .experiment import RUNS_DIR, Experiment, install_restore_handlers, wait_until_healthy
 
@@ -322,6 +323,8 @@ class Handler(BaseHTTPRequestHandler):
                 if q.get("scenario") not in SCENARIOS:
                     return self._json(404, {"error": "unknown scenario"})
                 return self._json(200, shop_view(q["scenario"], q.get("target") or None))
+            if path == "/api/network":
+                return self._json(200, network.inventory(0 if q.get("fresh") else 120))
             if path == "/api/plan":
                 return self._json(200, _load(PLAN_FILE.name) or {})
             if path.startswith("/api/runs/"):
