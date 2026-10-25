@@ -51,6 +51,10 @@ Pre-recorded alternative: `python scripts/record_demo.py --top 5`, then `python 
 | Crash, hang, network partition, CPU starvation | `docker kill` / `pause` / `network disconnect` / CPU quota | any allowed service |
 | DB overload | CPU-only SQL loop in PostgreSQL (cannot fill disk) | astronomy-db |
 | Traffic spike, spike + crash | concurrent synthetic users (+ `docker kill`) | frontend / chosen service |
+| Network latency + jitter, packet loss, corruption | `tc netem` in the target's network namespace | any allowed service |
+| Bandwidth limit | `tc tbf` token bucket | any allowed service |
+| Silent link failure / connection reset between two services | `iptables DROP` / `REJECT --reject-with tcp-reset` in the caller, matching only the callee's IP | checkout→payment/shipping/email, frontend→cart/catalog/currency/…, cart→valkey, catalog→db |
+| DNS outage | `iptables DROP` to Docker's resolver 127.0.0.11 | any allowed service |
 
 Never targeted: frontend-proxy, the telemetry stack and flagd (they would blind or disable the
 experiment).

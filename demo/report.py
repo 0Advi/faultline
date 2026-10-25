@@ -35,6 +35,16 @@ def _run_section(run: dict, analysis: dict | None, comparison: dict | None) -> l
            "- **Blast radius:** impacted paths: " + (", ".join(
                f"{ENDPOINTS[k]['label']} ({'; '.join(v)})" for k, v in (blast.get("impacted_endpoints") or {}).items())
                or "none") + f"; unexpected: {', '.join(blast.get('unexpected_endpoints') or []) or 'none'}", ""]
+    net = run.get("network") or {}
+    if net.get("fault"):
+        b, f = net.get("baseline") or {}, net["fault"]
+        rules = (net.get("rules") or {}).get("qdisc", []) + (net.get("rules") or {}).get("iptables", [])
+        out[-1:-1] = [f"- **Network ({net['service']}):** retransmitted {b.get('retransmit_pct')}% -> "
+                      f"{f.get('retransmit_pct')}% of segments; failed connects {f.get('connect_failures')}; "
+                      f"resets sent {f.get('resets_sent')}; median RTT {f.get('rtt_p50_ms')} ms"
+                      + (f"; rules verified: `{'; '.join(rules)}`" if rules else "")]
+        out[-1:-1] = [f"- **Hop {h['edge']}:** network {h['baseline_network_ms']} -> {h['fault_network_ms']} ms, "
+                      f"server {h['baseline_server_ms']} -> {h['fault_server_ms']} ms" for h in net.get("hops", [])[:3]]
     rep = (analysis or {}).get("report")
     if rep:
         out += [f"**AI verdict:** hypothesis {rep['hypothesis_verdict']} - {rep['verdict_reason']}", "",

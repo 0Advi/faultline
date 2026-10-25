@@ -18,6 +18,7 @@ from uuid import uuid4
 from controller.executor.flag_store import FLAG_FILE
 from controller.observer.endpoints import app_url
 
+from . import netem
 from .catalog import CONTAINER_TARGETS, SCENARIOS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -273,6 +274,35 @@ def _undo_container_inner(undo: dict) -> str:
     return f"{undo['service']} {undo['kind']} undone"
 
 
+def container_ip(service: str) -> str:
+    """A service container's IP address on the sandbox network."""
+    networks = json.loads(docker("inspect", container(service)))[0]["NetworkSettings"]["Networks"] or {}
+    ip = (networks.get(NETWORK) or {}).get("IPAddress")
+    if not ip:
+        raise RuntimeError(f"{service} has no address on {NETWORK}")
+    return ip
+
+
+def _apply_net(mechanism: str, target: str, variant: str) -> tuple[dict, str]:
+    """Apply a network fault. Link faults (blackhole / reset) run in the target's caller and match
+    only packets to the target; the others run in the target itself. The undo record is journaled
+    before any rule is added."""
+    where = netem.LINK_CALLER[target] if mechanism in ("blackhole", "reset") else target
+    if where not in CONTAINER_TARGETS:
+        raise PermissionError(f"{where} is not an allowed fault target")
+    peer_ip = container_ip(target) if mechanism in ("blackhole", "reset") else None
+    netem.ensure_image()
+    undo = {"id": uuid4().hex, "kind": "net", "net": mechanism, "service": where, "container": container(where),
+            "peer": target if peer_ip else None, "peer_ip": peer_ip}
+    if mechanism in ("delay", "loss", "corrupt", "bandwidth"):
+        undo["dev"] = netem.interface(undo["container"])
+    else:
+        undo["iptables"] = netem.iptables_rules(mechanism, peer_ip)
+    _journal_add(undo)
+    rule = netem.apply(undo, mechanism, variant, peer_ip)
+    return undo, rule
+
+
 DB_MARK = "chaos_demo_overload"
 
 
@@ -452,6 +482,7 @@ class Injection:
         self.spike: TrafficSpike | None = None
         self.stall: StallCycle | None = None
         self.description = ""
+        self.rule = ""
 
     def apply(self):
         """Apply the fault. If anything fails half-way, undo every journal entry this apply created
@@ -494,6 +525,12 @@ class Injection:
             verb = {"kill": "docker kill", "pause": "docker pause", "partition": "network disconnect",
                     "cpu": f"CPU quota {self.variant}"}[kind]
             self.description = f"{verb} {self.target}"
+        elif kind == "net":
+            undo, rule = _apply_net(self.spec["net"], self.target, self.variant)
+            self.undos.append(undo)
+            self.rule = rule
+            where = undo["service"] + (f" -> {undo['peer']} ({undo['peer_ip']})" if undo.get("peer") else "")
+            self.description = f"{where}: {rule}"
         elif kind == "db_overload":
             self.undos.append(_container_fault("cpu", "astronomy-db", "100%"))   # 1 CPU: queries must compete
             self.undos.append(_apply_db_overload(self.variant))
@@ -545,6 +582,8 @@ def undo_entry(undo: dict) -> str:
             result = _undo_flag(undo)
         elif undo["kind"] == "db_overload":
             result = _undo_db_overload(undo)
+        elif undo["kind"] == "net":
+            result = netem.undo(undo)
         else:
             result = _undo_container(undo)
     except Exception as error:

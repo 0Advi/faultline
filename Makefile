@@ -2,7 +2,7 @@ PYTHON ?= python3
 
 .PHONY: help bootstrap validate build start stop status smoke verify test schemas preflight flags capabilities \
 	probe baseline derive-policy runs abort reconcile api report test-sandbox \
-	diagnose eval-baseline eval-model
+	diagnose eval-baseline eval-model nettools
 help:
 	@echo "bootstrap  Fetch pinned upstream source"
 	@echo "validate   Validate the selected deployment without starting containers"
@@ -12,6 +12,7 @@ help:
 	@echo "smoke      Probe application APIs and Prometheus (not a full baseline)"
 	@echo "verify     Check cart/checkout and telemetry; save startup evidence"
 	@echo "stop       Stop this sandbox without deleting volumes"
+	@echo "nettools   Build the helper image used for network faults (tc / iptables / ss / nstat)"
 	@echo "test       Run controller contract/safety tests (no Docker needed)"
 	@echo "schemas    Regenerate JSON Schemas from controller contracts"
 	@echo "preflight  Check sandbox identity and isolation (read-only)"
@@ -104,3 +105,6 @@ demo-deps:
 	$(PYTHON) -m pip install -r demo/requirements.txt
 demo:
 	$(PYTHON) -m demo.server --port 8099
+
+nettools:
+	docker build -q -t faultline-nettools:1 deploy/nettools

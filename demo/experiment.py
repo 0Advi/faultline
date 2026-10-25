@@ -18,8 +18,9 @@ import time
 from typing import Callable
 from uuid import uuid4
 
-from . import evidence, faults, scoring, topology
-from .catalog import ENDPOINTS, SCENARIOS, scenario_view
+from . import evidence, faults, network, scoring, topology
+from .catalog import CONTAINER_TARGETS, ENDPOINTS, SCENARIOS, scenario_view
+from .netem import LINK_CALLER
 from .workload import Workload
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +74,10 @@ class Experiment:
         self.parent = params.get("parent")  # run this is a re-run of (after a fix)
         self.proposed_by = params.get("proposed_by")
         self.workload = Workload(lambda row: emit("req", row))
+        # Network evidence comes from the namespace the fault acts in: the caller for link faults.
+        self.net_service = LINK_CALLER[spec["target"]] if spec.get("net") in ("blackhole", "reset") \
+            else spec["target"]
+        self.net = network.RunNetwork(self.net_service) if self.net_service in CONTAINER_TARGETS else None
 
     # ------------------------------------------------------------- helpers
     def mark(self, name: str, **extra):
@@ -169,6 +174,7 @@ class Experiment:
         self.workload.start()
         try:
             self.mark("baseline")
+            self._net_sample("baseline")
             self.wait(self.durations["baseline"])
             # Health gate: every path needs >= 3 samples at >= 80 % success. A host stall can
             # leave a path with one slow sample, so extend the baseline (up to 30 s) before refusing.
@@ -190,10 +196,19 @@ class Experiment:
             # Applying a fault (e.g. a flagd config push) briefly stalls services by itself; those
             # requests are labelled "propagation" and kept out of the fault statistics.
             self.workload.phase = "propagation"
+            self._net_sample("inject")
             self.mark("inject", description=self.injection.description)
             applied = True
             self.injection.apply()
-            self.wait(PROPAGATION_S)
+            started = time.monotonic()
+            if spec["kind"] == "net" and self.net:
+                self.net.capture_rules(next((u.get("dev") for u in self.injection.undos
+                                             if u.get("kind") == "net"), None))
+                rules = (self.net.rules or {})
+                shown = "; ".join(rules.get("qdisc", []) + rules.get("iptables", [])) or "none found"
+                self.emit("log", {"level": "info" if rules.get("qdisc") or rules.get("iptables") else "warn",
+                                  "message": f"Verified in {self.net_service}'s network namespace: {shown}"})
+            self.wait(max(0.0, PROPAGATION_S - (time.monotonic() - started)))
             self.workload.phase = "fault"
             self.mark("fault")
             self.wait(self.durations["fault"], self.check_guardrails, endable=True)
@@ -204,6 +219,8 @@ class Experiment:
             outcome, reason = "error", f"{type(error).__name__}: {error}"
             self.emit("log", {"level": "error", "message": reason})
         finally:
+            if applied:
+                self._net_sample("fault_end")
             restore_results = self.injection.restore()
             if applied:
                 self.workload.phase = "restoring"
@@ -281,7 +298,15 @@ class Experiment:
             "containers": {svc: faults.container_state(svc) for svc in dict.fromkeys(log_services)},
             "requests": records, "journeys": self.workload.journeys,
             "flags_clean": faults.flags_clean(), "active_faults_left": len(faults.active_faults()),
+            "network": {**self.net.summary(),
+                        "hops": network.edge_timing(records, {self.spec["target"], self.net_service})}
+            if self.net and applied else None,
         }
+
+    def _net_sample(self, name: str):
+        """Sample the fault container's TCP counters (no-op when it has no observable namespace)."""
+        if self.net:
+            self.net.sample(name)
 
     def save(self):
         """Write the run record to artifacts/demo-runs/<run_id>.json."""

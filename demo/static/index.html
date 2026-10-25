@@ -21,7 +21,7 @@
     </div>
   </div>
   <nav class="nav">
-    <a href="#plan">Plan</a><a href="#experiment">Experiment</a><a href="#live">Live</a><a href="#graph">Blast radius</a>
+    <a href="#plan">Plan</a><a href="#experiment">Experiment</a><a href="#live">Live</a><a href="#graph">Blast radius</a><a href="#network">Network</a>
     <a href="#evidence-sec">Evidence</a><a href="#findings">Findings</a><a href="#campaign">Report</a>
   </nav>
   <div class="chips" id="chips"></div>
@@ -43,7 +43,7 @@
         <button class="primary big" id="hero-plan">Plan with AI <kbd>P</kbd></button>
         <button class="big" id="hero-run">Design experiment <kbd>R</kbd></button>
       </div>
-      <p class="fine">Free-tier LLM · 19 fault scenarios · every fault journaled and auto-restored.</p>
+      <p class="fine">Free-tier LLM · 27 fault scenarios incl. network layer · every fault journaled and auto-restored.</p>
     </div>
     <div class="hero-stats">
       <div class="stat green">
@@ -52,7 +52,7 @@
       </div>
       <div class="stat orange">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
-        <div><div class="v" id="st-scenarios">19</div><div class="l">fault scenarios ready</div></div>
+        <div><div class="v" id="st-scenarios">27</div><div class="l">fault scenarios ready</div></div>
       </div>
       <div class="stat yellow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -156,21 +156,36 @@
     </div>
   </section>
 
+  <!-- Network layer -->
+  <section class="card" id="network">
+    <div class="card-head">
+      <h2><span class="num">06</span> Network layer</h2>
+      <button id="net-refresh" data-needs-idle>Refresh</button>
+    </div>
+    <p class="muted small">Each service runs in its own Linux network namespace on one Docker bridge. Network faults
+      are applied inside a single namespace with <code>tc</code> (netem delay / loss / corruption, token-bucket
+      rate limit) or <code>iptables</code> (dropped or reset links, DNS outage) and removed on restore.</p>
+    <div class="net-grid">
+      <div id="net-summary" class="net-summary"><p class="muted">Loading the network…</p></div>
+      <div id="net-table" class="net-table"></div>
+    </div>
+  </section>
+
   <!-- 5. Evidence + agent -->
   <section class="grid-two" id="evidence-sec">
     <div class="card">
       <div class="card-head">
-        <h2><span class="num">06</span> Evidence</h2>
+        <h2><span class="num">07</span> Evidence</h2>
         <div class="tabs" id="tabs">
           <button data-tab="trace" class="on">Traces</button><button data-tab="spans">Error spans</button>
-          <button data-tab="logs">Logs</button><button data-tab="containers">Containers</button><button data-tab="paths">Paths</button>
+          <button data-tab="logs">Logs</button><button data-tab="containers">Containers</button><button data-tab="network">Network</button><button data-tab="paths">Paths</button>
         </div>
       </div>
       <div id="evidence" class="evidence"><p class="muted">Evidence appears when the run finishes.</p></div>
     </div>
     <div class="card">
       <div class="card-head">
-        <h2><span class="num">07</span> AI agent activity</h2>
+        <h2><span class="num">08</span> AI agent activity</h2>
         <span class="graph-pill" id="graph-pill">planner → investigator ⇄ tools → advisor → fixer ⇄ validator → reviewer</span>
       </div>
       <div id="feed" class="feed"><p class="muted">Agent steps stream here.</p></div>
@@ -179,14 +194,14 @@
 
   <!-- 6. Findings -->
   <section class="card" id="findings">
-    <h2><span class="num">08</span> Findings, suggested fix &amp; auto-fix</h2>
+    <h2><span class="num">09</span> Findings, suggested fix &amp; auto-fix</h2>
     <div id="report"><p class="muted">The agent's grounded report and code fix appear here.</p></div>
   </section>
 
   <!-- 7. Campaign -->
   <section class="card" id="campaign">
     <div class="card-head">
-      <h2><span class="num">09</span> Resilience report</h2>
+      <h2><span class="num">10</span> Resilience report</h2>
       <a class="button" id="report-dl" href="#" download>Download findings report (.md)</a>
     </div>
     <div id="campaign-out"><p class="muted">Run a campaign (step 01) to get a ranked, multi-experiment findings report with an overall resilience score.</p></div>

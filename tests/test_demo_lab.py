@@ -22,7 +22,9 @@ def test_every_scenario_is_well_formed():
         if "stall_target" in spec:
             assert spec["stall_target"] in catalog.CONTAINER_TARGETS, sid
         assert spec["kind"] in {"flag", "kill", "pause", "partition", "cpu", "stall", "db_overload",
-                                "traffic", "combined"}, sid
+                                "traffic", "combined", "net"}, sid
+        if spec["kind"] == "net":
+            assert spec["net"] in {"delay", "loss", "bandwidth", "corrupt", "blackhole", "reset", "dns"}, sid
 
 
 def test_observability_and_control_plane_are_never_targets():
