@@ -67,7 +67,7 @@
   ],
   "passed": true,
   "upstream_revision": "dedc0178918e260823323b8d95005a8cb924b007",
-  "project": "bosch-chaos-sandbox",
+  "project": "faultline-sandbox",
   "runtime": [
     {
       "service": "ad",

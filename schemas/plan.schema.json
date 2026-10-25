@@ -25,7 +25,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/plan/1.0.0",
+  "$id": "faultline/plan/1.0.0",
   "additionalProperties": false,
   "properties": {
     "baseline_ref": {

@@ -56,8 +56,8 @@ def main():
     evidence = {"experiment": None, "fault_executed": False,
                 "kind": "startup_verification", "started_at": datetime.now(timezone.utc).isoformat(),
                 "checks": [], "passed": False}
-    app = f"http://127.0.0.1:{host_port('BOSCH_APP_PORT', 8080)}"
-    metrics = f"http://127.0.0.1:{host_port('BOSCH_METRICS_PORT', 9090)}"
+    app = f"http://127.0.0.1:{host_port('FAULTLINE_APP_PORT', 8080)}"
+    metrics = f"http://127.0.0.1:{host_port('FAULTLINE_METRICS_PORT', 9090)}"
 
     def check(label, path, payload=None):
         """Request one shop path, record it as a check and return its body."""

@@ -1,12 +1,12 @@
 <div align="center">
 
-# Bosch Chaos Engineering
+# Faultline
 
 **Safe, bounded, evidence-driven payment chaos experiments for microservice systems.**
 
-Built around the pinned [OpenTelemetry Astronomy Shop](https://github.com/open-telemetry/opentelemetry-demo) · Bosch Hackathon
+Built around the pinned [OpenTelemetry Astronomy Shop](https://github.com/open-telemetry/opentelemetry-demo)
 
-![Status](https://img.shields.io/badge/status-hackathon%20prototype-orange)
+![Status](https://img.shields.io/badge/status-prototype-orange)
 ![Execution](https://img.shields.io/badge/fault%20execution-disabled%20by%20default-red)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![Upstream](https://img.shields.io/badge/OTel%20Demo-3.1.0-6f42c1)
@@ -22,7 +22,7 @@ Built around the pinned [OpenTelemetry Astronomy Shop](https://github.com/open-t
 
 Chaos engineering is only useful if it is **safe to run** and **easy to learn from**. Most tools inject a fault and leave the operator to guess what happened, or worse, to clean up manually.
 
-Bosch Chaos Engineering is a payment-chaos development platform that treats **safety and evidence as first-class features**:
+Faultline is a payment-chaos development platform that treats **safety and evidence as first-class features**:
 
 - **Bounded experiments:** every experiment has a target allowlist, a hard deadline, and abort thresholds.
 - **Independent restoration:** faults are restored by a separate supervisor, not only by the process that injected them.
@@ -65,7 +65,7 @@ flowchart LR
 
 ## Project status
 
-This is a hackathon prototype. We are explicit about what is and is not proven.
+This is a working prototype. We are explicit about what is and is not proven.
 
 | Area | State |
 |---|---|
@@ -82,8 +82,8 @@ Details: [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) · [P5/P6 integrat
 ## Quick start
 
 ```sh
-git clone --recurse-submodules https://github.com/0Advi/bosch-chaos-engineering.git
-cd bosch-chaos-engineering
+git clone --recurse-submodules https://github.com/0Advi/faultline.git
+cd faultline
 
 python3.13 -m venv .venv
 . .venv/bin/activate
@@ -127,13 +127,13 @@ make stop       # tear down the Compose project (volumes are not deleted)
 | Feature flags | http://localhost:8080/feature/ |
 | Prometheus | http://localhost:9090/ |
 
-Change `BOSCH_APP_PORT` or `BOSCH_METRICS_PORT` in `deploy/demo.local.env` (Git-ignored) if a port is taken. You can also select the Docker Hub mirror there with `IMAGE_NAME=docker.io/otel/demo`.
+Change `FAULTLINE_APP_PORT` or `FAULTLINE_METRICS_PORT` in `deploy/demo.local.env` (Git-ignored) if a port is taken. You can also select the Docker Hub mirror there with `IMAGE_NAME=docker.io/otel/demo`.
 
-`make smoke` and `make verify` are startup checks. They are **not** a healthy baseline and do not execute a fault. Keep the upstream random feature-flag scheduler idle and failure flags at their resting settings during baseline and Bosch experiments.
+`make smoke` and `make verify` are startup checks. They are **not** a healthy baseline and do not execute a fault. Keep the upstream random feature-flag scheduler idle and failure flags at their resting settings during baseline and experiments.
 
 `make start` requires Go to compile a small static payment health probe for the Docker daemon architecture, avoiding repeated loads of Node telemetry instrumentation inside the health check. The generated executable stays local. The sandbox gives checkout and product catalog 128 MiB each, including their health-check processes; remeasure baselines after resource-budget changes.
 
-For development source builds: `make build`, then `BOSCH_SOURCE_BUILD=true make start`. These use separate `bosch-local/demo:3.1.0-source-<service>` image names so official images are never overwritten.
+For development source builds: `make build`, then `FAULTLINE_SOURCE_BUILD=true make start`. These use separate `faultline-local/demo:3.1.0-source-<service>` image names so official images are never overwritten.
 
 ## AI Chaos Lab (live demo)
 
@@ -166,7 +166,7 @@ Fault injection tooling must be trustworthy before it is powerful. The controlle
 7. **Manual kill switch:** an operator can always stop and restore.
 8. **Automatic, verified restoration:** recovery is confirmed, not assumed.
 
-Isolation in the Compose overlay: no fixed container names, a dedicated `bosch-chaos-sandbox` project and network, no backend host ports, and only the shop and Prometheus exposed on `127.0.0.1`.
+Isolation in the Compose overlay: no fixed container names, a dedicated `faultline-sandbox` project and network, no backend host ports, and only the shop and Prometheus exposed on `127.0.0.1`.
 
 > **Note:** the upstream OpenTelemetry Collector mounts the Docker socket and host filesystem for observation. A read-only socket mount does not limit Docker API capabilities. Use a dedicated sandbox Docker daemon; the overlay reduces collisions and exposure but is not a substitute.
 

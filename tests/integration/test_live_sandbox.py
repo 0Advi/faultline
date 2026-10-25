@@ -1,7 +1,7 @@
 """Dedicated-sandbox integration checks (P3-04). Never run in hosted CI.
 
 make test-sandbox                         read-only checks against the running sandbox
-BOSCH_SANDBOX_LIVE=1 BOSCH_BASELINE_REF=artifacts/baselines/<id>.json make test-sandbox
+FAULTLINE_SANDBOX_LIVE=1 FAULTLINE_BASELINE_REF=artifacts/baselines/<id>.json make test-sandbox
                                           also runs real injection + stop paths
 
 The live tests use the real gates: they only proceed when the sandbox is
@@ -19,10 +19,10 @@ from pathlib import Path
 import pytest
 
 pytestmark = [pytest.mark.sandbox,
-              pytest.mark.skipif(os.environ.get("BOSCH_SANDBOX_TESTS") != "1",
-                                 reason="set BOSCH_SANDBOX_TESTS=1 to run against the dedicated sandbox")]
+              pytest.mark.skipif(os.environ.get("FAULTLINE_SANDBOX_TESTS") != "1",
+                                 reason="set FAULTLINE_SANDBOX_TESTS=1 to run against the dedicated sandbox")]
 ROOT = Path(__file__).resolve().parents[2]
-LIVE = os.environ.get("BOSCH_SANDBOX_LIVE") == "1"
+LIVE = os.environ.get("FAULTLINE_SANDBOX_LIVE") == "1"
 
 
 def cli(*args) -> dict:
@@ -59,11 +59,11 @@ def _plan(capability: str, duration: int, **params):
     out = ToolRegistry().dispatch("propose_plan", {"capability_id": capability, "parameters": params,
                                                    "duration_seconds": duration, "expected_impact": "sandbox check"})
     assert out["ok"], out
-    plan = out["result"] | {"requested_by": "user", "baseline_ref": os.environ["BOSCH_BASELINE_REF"]}
+    plan = out["result"] | {"requested_by": "user", "baseline_ref": os.environ["FAULTLINE_BASELINE_REF"]}
     return Plan.model_validate(plan)
 
 
-@pytest.mark.skipif(not LIVE, reason="set BOSCH_SANDBOX_LIVE=1 to inject real faults")
+@pytest.mark.skipif(not LIVE, reason="set FAULTLINE_SANDBOX_LIVE=1 to inject real faults")
 @pytest.mark.parametrize("capability, params", [("payment-unreachable", {}),
                                                 ("payment-handler-failure", {"failure_rate": "100%"})])
 def test_live_injection_restores_and_recovers(capability, params):
@@ -77,7 +77,7 @@ def test_live_injection_restores_and_recovers(capability, params):
     assert summary["result"]["impact_observed"] and FLAG_FILE.read_bytes() == before
 
 
-@pytest.mark.skipif(not LIVE, reason="set BOSCH_SANDBOX_LIVE=1 to inject real faults")
+@pytest.mark.skipif(not LIVE, reason="set FAULTLINE_SANDBOX_LIVE=1 to inject real faults")
 def test_live_manual_abort_restores():
     """Aborting a live run while it is running still restores the flag and recovers."""
     from controller.executor import runner

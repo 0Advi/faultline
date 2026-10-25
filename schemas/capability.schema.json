@@ -135,7 +135,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/capability/1.0.0",
+  "$id": "faultline/capability/1.0.0",
   "additionalProperties": false,
   "properties": {
     "adapter": {

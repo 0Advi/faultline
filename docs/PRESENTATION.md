@@ -70,7 +70,7 @@ experiment).
 Availability 30% · containment 25% · recovery time 20% · error-handling quality 15% · latency 10%.
 Grades A ≥ 90, B ≥ 75, C ≥ 60, D ≥ 40. Campaign score = mean of experiments. See `demo/scoring.py`.
 
-## Known limitations (say them before a judge does)
+## Known limitations (say them up front)
 
 - One run per experiment (~15–25 s fault window). Scores compare experiments; repeat runs to
   tighten them.

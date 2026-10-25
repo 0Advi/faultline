@@ -35,12 +35,12 @@ def _port(key: str, default: int) -> int:
 
 def app_url() -> str:
     """The loopback shop URL (frontend proxy)."""
-    return f"http://127.0.0.1:{_port('BOSCH_APP_PORT', 8080)}"
+    return f"http://127.0.0.1:{_port('FAULTLINE_APP_PORT', 8080)}"
 
 
 def metrics_url() -> str:
     """The loopback Prometheus URL."""
-    return f"http://127.0.0.1:{_port('BOSCH_METRICS_PORT', 9090)}"
+    return f"http://127.0.0.1:{_port('FAULTLINE_METRICS_PORT', 9090)}"
 
 
 def jaeger_api() -> str:

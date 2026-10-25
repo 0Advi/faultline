@@ -67,9 +67,9 @@ class Catalog:
 
 
 def load_policy(path: Path = POLICY_PATH) -> dict:
-    """Load the execution policy (BOSCH_EXECUTION_POLICY overrides the default file)."""
-    if path == POLICY_PATH and os.environ.get("BOSCH_EXECUTION_POLICY"):
-        path = Path(os.environ["BOSCH_EXECUTION_POLICY"])
+    """Load the execution policy (FAULTLINE_EXECUTION_POLICY overrides the default file)."""
+    if path == POLICY_PATH and os.environ.get("FAULTLINE_EXECUTION_POLICY"):
+        path = Path(os.environ["FAULTLINE_EXECUTION_POLICY"])
     return yaml.safe_load(path.read_text())
 
 

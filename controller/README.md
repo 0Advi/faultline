@@ -1,4 +1,4 @@
-# Bosch controller boundary
+# Faultline controller boundary
 
 Implemented so far:
 

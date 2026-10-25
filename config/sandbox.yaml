@@ -5,8 +5,8 @@ schema_version: 1
 approved: false
 docker_context: default
 daemon_id: ""            # docker info --format '{{.ID}}' on the dedicated machine
-compose_project: bosch-chaos-sandbox
-network: bosch-chaos-sandbox
+compose_project: faultline-sandbox
+network: faultline-sandbox
 require_dedicated_daemon: true   # no containers from other projects on the daemon
 expected_services:
   - ad

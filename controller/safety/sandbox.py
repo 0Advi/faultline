@@ -17,14 +17,14 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 SPEC_PATH = ROOT / "config" / "sandbox.yaml"
 PROJECT_LABEL = "com.docker.compose.project"
-TOOL_LABEL = "bosch.chaos.tool"  # short-lived curl/grpcurl containers started by the controller
+TOOL_LABEL = "faultline.tool"  # short-lived curl/grpcurl containers started by the controller
 SERVICE_LABEL = "com.docker.compose.service"
 
 
 def load_spec(path: Path = SPEC_PATH) -> dict:
-    """Load the sandbox spec YAML (path can be overridden with BOSCH_SANDBOX_SPEC)."""
-    if path == SPEC_PATH and os.environ.get("BOSCH_SANDBOX_SPEC"):
-        path = Path(os.environ["BOSCH_SANDBOX_SPEC"])
+    """Load the sandbox spec YAML (path can be overridden with FAULTLINE_SANDBOX_SPEC)."""
+    if path == SPEC_PATH and os.environ.get("FAULTLINE_SANDBOX_SPEC"):
+        path = Path(os.environ["FAULTLINE_SANDBOX_SPEC"])
     return yaml.safe_load(path.read_text())
 
 

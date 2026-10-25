@@ -37,7 +37,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/paymentpolicy/1.0.0",
+  "$id": "faultline/paymentpolicy/1.0.0",
   "additionalProperties": false,
   "properties": {
     "affected_probes": {

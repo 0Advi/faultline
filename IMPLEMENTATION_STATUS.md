@@ -52,5 +52,5 @@ upstream source and healthy flags remain unchanged.
 Complete the ordered seven-step live demonstration in
 [docs/release-and-demo.md](docs/release-and-demo.md). Current status is **an integrated,
 tested development platform with guarded execution**, with live end-to-end payment
-repair and hackathon acceptance still pending. Do not present sample or simulated
+repair and final acceptance still pending. Do not present sample or simulated
 records as measured shop behavior.

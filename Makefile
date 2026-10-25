@@ -83,7 +83,7 @@ api:
 report:
 	$(PYTHON) -m controller.cli report $(RUN)
 test-sandbox:
-	BOSCH_SANDBOX_TESTS=1 $(PYTHON) -m pytest -q -s -m sandbox tests/integration
+	FAULTLINE_SANDBOX_TESTS=1 $(PYTHON) -m pytest -q -s -m sandbox tests/integration
 diagnose:
 	$(PYTHON) -m controller.cli diagnose $(RUN)
 eval-baseline:

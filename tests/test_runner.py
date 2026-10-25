@@ -153,7 +153,7 @@ def _baseline_file(root, finished_at, flag_file):
     stats = [ProbeStats(probe=p, attempts=30, failures=0, failure_rate=0, p95_ms=100.0, p99_ms=120.0)
              for p in ("POST /api/checkout", "GET /", "GET /api/products", "POST /api/cart", "GET /api/cart")]
     b = Baseline(baseline_id="baseline-test", started_at=finished_at, finished_at=finished_at,
-                 sandbox=SandboxRef(docker_context="default", daemon_id="", compose_project="bosch-chaos-sandbox"),
+                 sandbox=SandboxRef(docker_context="default", daemon_id="", compose_project="faultline-sandbox"),
                  upstream_revision="dedc0178918e260823323b8d95005a8cb924b007", flag_sha256=hashlib.sha256(flag_file.read_bytes()).hexdigest(),
                  workload={"attempts":30,"duration_seconds":180,"warmup_attempts":5}, probes=stats, controls=[], telemetry={}, resources={}, health={}, criteria={},
                  healthy=True, blocking=[], observations_file="x", limitations=[])

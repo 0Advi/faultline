@@ -40,7 +40,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/comparison/1.0.0",
+  "$id": "faultline/comparison/1.0.0",
   "additionalProperties": false,
   "properties": {
     "baseline": {

@@ -68,7 +68,7 @@ dedicated sandbox are opt-in:
 
 ```bash
 make test-sandbox
-BOSCH_SANDBOX_LIVE=1 BOSCH_BASELINE_REF=artifacts/baselines/<id>.json make test-sandbox
+FAULTLINE_SANDBOX_LIVE=1 FAULTLINE_BASELINE_REF=artifacts/baselines/<id>.json make test-sandbox
 ```
 
 Keep the printed evidence directories as the recorded real-sandbox result.

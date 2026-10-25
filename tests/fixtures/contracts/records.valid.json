@@ -76,7 +76,7 @@
     "sandbox": {
       "docker_context": "default",
       "daemon_id": "unset",
-      "compose_project": "bosch-chaos-sandbox"
+      "compose_project": "faultline-sandbox"
     },
     "duration_seconds": 15,
     "baseline_ref": null,
@@ -169,7 +169,7 @@
     "sandbox": {
       "docker_context": "default",
       "daemon_id": "unset",
-      "compose_project": "bosch-chaos-sandbox"
+      "compose_project": "faultline-sandbox"
     },
     "upstream_revision": "unknown",
     "flag_sha256": "0000000000000000000000000000000000000000000000000000000000000000",

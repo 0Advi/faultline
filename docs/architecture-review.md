@@ -1,4 +1,4 @@
-# Bosch Day 1: architecture and component selection
+# Day 1: architecture and component selection
 
 Deployment update: the localhost preview uses official release 3.1.0, source
 commit `dedc0178918e260823323b8d95005a8cb924b007`, with matching versioned images.
@@ -13,11 +13,11 @@ Repository: [OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry
 
 ## 1. What the briefs mean for this project
 
-The Bosch objective is controlled failure injection with measured impact, deterministic safety, recovery, and an evidence-based report. The supplied documents recommend OpenTelemetry Demo, Docker Compose, and Python; those choices are recommendations, rather than challenge-mandated technologies.
+The project objective is controlled failure injection with measured impact, deterministic safety, recovery, and an evidence-based report. The supplied documents recommend OpenTelemetry Demo, Docker Compose, and Python; those choices are recommendations, rather than challenge-mandated technologies.
 
 The user's current request is architecture and component selection only. The documents' instructions to start the app and implement subsequent phases are context for future work, not authorization to execute those phases in this review.
 
-Use the demo as the application under test and its bundled tools as observation infrastructure. Build a small, separate Bosch controller later. The demo itself is not a complete chaos controller.
+Use the demo as the application under test and its bundled tools as observation infrastructure. Build a small, separate Faultline controller later. The demo itself is not a complete chaos controller.
 
 ## 2. Repository architecture
 
@@ -32,7 +32,7 @@ The deployment files are intentionally layered:
 | Kafka group | `compose.full.yaml` | Kafka, accounting, fraud detection; patches checkout and Collector | Defer |
 | Shopping AI | `compose.agent.yaml` | Agent, MCP server, chatbot; patches proxy and load generator | Defer |
 | Profiling | `compose.profiling.yaml` | eBPF profiler and Firepit | Defer |
-| Customization | `compose.extras.yaml` | Empty extension seam | Use an external override for Bosch-specific deployment changes |
+| Customization | `compose.extras.yaml` | Empty extension seam | Use an external override for project-specific deployment changes |
 | Existing tests | `compose.tests.yaml`, `test/telemetry/`, frontend Cypress tests | Test runners and checks | Reuse relevant checks during runtime verification |
 
 The recommended configuration has **25 declared services**: 20 core plus 5 observability. Across the core, observability, full, agentic, and profiling layers there are 33 unique services. “Minimal” means omitting the Kafka group; it does not mean a three-service app.
@@ -90,7 +90,7 @@ flowchart LR
   Grafana[Grafana dashboards] --> Prometheus
   Grafana --> Jaeger
   Grafana --> OpenSearch
-  Future[Future Bosch observer] -->|query metrics| Prometheus
+  Future[Future Faultline observer] -->|query metrics| Prometheus
   Future -->|query trace evidence| Jaeger
 ```
 
@@ -110,7 +110,7 @@ Sources: [base Collector configuration](https://github.com/open-telemetry/opente
 | Visual impact | Existing Grafana demo/span-metrics dashboards | Suitable demonstration views; no new dashboard needed |
 | Failure explanation | OpenSearch and correlated logs | Reuse existing logs rather than adding a log platform |
 | Signal inventory | `telemetry-schema/`, `test/telemetry/services.py` | Starting inventory of expected attributes, metrics, and service signals |
-| Deployment customization | Compose override plus Collector extras configuration | Keep application source separate from Bosch code |
+| Deployment customization | Compose override plus Collector extras configuration | Keep application source separate from Faultline code |
 | First fault candidate | `recommendation` | Stateless recommendation path, explicit API traffic, separate failure visibility |
 
 Keep OpenSearch, OpAMP, flagd-ui, and telemetry-docs in the first supported deployment, even if not directly used by the experiment. Removing them requires reconciling upstream startup dependencies, proxy routing, exporters, and OpAMP patches. That pruning is unnecessary for the first pass.
@@ -138,12 +138,12 @@ Ad is a reasonable second candidate, with `/api/data` and the built-in `adFailur
 ### Components to defer
 
 - `compose.full.yaml`: Kafka/accounting/fraud detection add an asynchronous branch and recovery complexity outside the first experiment.
-- `compose.agent.yaml`: the upstream agent and MCP tools perform shopping operations; they do not provide Bosch experiment planning and deterministic safety.
+- `compose.agent.yaml`: the upstream agent and MCP tools perform shopping operations; they do not provide Faultline experiment planning and deterministic safety.
 - `compose.profiling.yaml`: profiling is unnecessary for proving a first bounded outage.
-- The flagd-ui random scheduler: it supports timed reversion and configurable concurrency, but its inspected implementation does not monitor health/error/latency thresholds or enforce the Bosch healthy-baseline precondition. Keep it idle during Bosch experiments.
+- The flagd-ui random scheduler: it supports timed reversion and configurable concurrency, but its inspected implementation does not monitor health/error/latency thresholds or enforce the healthy-baseline precondition. Keep it idle during experiments.
 - Simian Agent, The Chaos Monkey Agent, Agent Chaos Lab, Chaos Mesh, and LitmusChaos: listed in the brief as future references. They were not audited here and are not selected as dependencies. Day 1 needs one execution mechanism.
 
-## 4. What Bosch needs to add later
+## 4. What Faultline needs to add later
 
 ```mermaid
 flowchart LR
@@ -173,7 +173,7 @@ An eventual LLM can propose structured plans and explain evidence. It should not
 | Latency/error visibility | Existing dashboard queries reference `traces_span_metrics_calls_total` and duration histograms | Names, labels, units, and freshness not verified live; span errors are not automatically end-user error rate | Inspect actual series; select caller/server scope; use request probes for immediate decisions |
 | Health | Many Compose health checks; Collector HTTP check | Several checks are only TCP; cart and Collector lack Compose health checks | Add controller-level business API and telemetry freshness checks |
 | Bounded fault | Recommendation candidate and restart policy inspected | No execution or fault verification | Stop/start only the resolved allowlisted container after healthy baseline |
-| Threshold abort / kill switch | No Bosch controller present | Upstream timed flag reversion is not threshold safety | Implement deterministic watchdog, thresholds, lock, and explicit abort |
+| Threshold abort / kill switch | No Faultline controller present | Upstream timed flag reversion is not threshold safety | Implement deterministic watchdog, thresholds, lock, and explicit abort |
 | Recovery | Existing app restart/start capability | Not tested; TCP readiness is insufficient | Verify affected API and protected workflows after restoration |
 | Evidence report | Existing telemetry and tests | No baseline/fault/recovery artifacts | Save timestamped windows, sources, decisions, and limitations |
 

@@ -45,7 +45,7 @@ def provider(result, **kw):
 
 def test_request_shape_pins_model_effort_schema_fallback_and_cache(monkeypatch):
     """Requests pin the model, effort, output schema, fallback models and prompt caching."""
-    monkeypatch.delenv("BOSCH_AGENT_MODEL", raising=False)
+    monkeypatch.delenv("FAULTLINE_AGENT_MODEL", raising=False)
     p, client = provider(message())
     response = p.complete(ModelRequest(system="sys", messages=[{"role": "user", "content": "x"}],
                                        output_schema={"type": "object"}))
@@ -62,8 +62,8 @@ def test_request_shape_pins_model_effort_schema_fallback_and_cache(monkeypatch):
 
 def test_model_id_comes_from_environment_not_tracked_files(monkeypatch):
     """Model id and effort come from environment variables."""
-    monkeypatch.setenv("BOSCH_AGENT_MODEL", "claude-sonnet-5-5")
-    monkeypatch.setenv("BOSCH_AGENT_EFFORT", "medium")
+    monkeypatch.setenv("FAULTLINE_AGENT_MODEL", "claude-sonnet-5-5")
+    monkeypatch.setenv("FAULTLINE_AGENT_EFFORT", "medium")
     p, client = provider(message())
     p.complete(ModelRequest(system="s", messages=[]))
     assert client.calls[0]["model"] == "claude-sonnet-5-5"

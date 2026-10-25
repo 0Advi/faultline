@@ -1,8 +1,8 @@
-Bosch Chaos Engineering
+Faultline
 
 This project reuses OpenTelemetry Demo, copyright The OpenTelemetry Authors,
 under the Apache License, Version 2.0. The upstream source and its notices are
 retained in vendor/opentelemetry-demo, pinned as a Git submodule.
 
-This is an independent hackathon project. It does not imply endorsement by
-Bosch or the OpenTelemetry project.
+This is an independent project. It does not imply endorsement by
+the OpenTelemetry project.

@@ -14,7 +14,7 @@ from controller.observer.sanitize import sanitize
 from controller.observer.telemetry import Telemetry
 
 ROOT = Path(__file__).resolve().parents[1]
-PROJECT = "bosch-chaos-sandbox"
+PROJECT = "faultline-sandbox"
 UPSTREAM = ROOT / "vendor" / "opentelemetry-demo" / "src"
 TELEMETRY = Telemetry(jaeger_api(), metrics_url(), timeout=5)
 

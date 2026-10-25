@@ -22,8 +22,8 @@ from .catalog import CONTAINER_TARGETS, SCENARIOS
 
 ROOT = Path(__file__).resolve().parents[1]
 JOURNAL = ROOT / "artifacts" / "demo-runs" / ".active-faults.json"
-PROJECT = "bosch-chaos-sandbox"
-NETWORK = "bosch-chaos-sandbox"
+PROJECT = "faultline-sandbox"
+NETWORK = "faultline-sandbox"
 _lock = threading.Lock()
 _LIVE: set = set()          # running StallCycle / TrafficSpike loops; restore_all halts them first
 

@@ -3,9 +3,9 @@
 The rest of the controller talks to `ModelProvider` only. Credentials and the
 model ID come from the environment (never tracked files):
 
-  BOSCH_AGENT_MODEL      default claude-opus-5-5
-  BOSCH_AGENT_EFFORT     default high (diagnosis is intelligence-sensitive)
-  BOSCH_AGENT_TIMEOUT_S  default 120
+  FAULTLINE_AGENT_MODEL      default claude-opus-5-5
+  FAULTLINE_AGENT_EFFORT     default high (diagnosis is intelligence-sensitive)
+  FAULTLINE_AGENT_TIMEOUT_S  default 120
   ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN / `ant auth login` profile (SDK-resolved)
 
 Every failure becomes a ProviderError with a stable `kind`; nothing here ever
@@ -101,12 +101,12 @@ class AnthropicProvider:
 
     def __init__(self, model: Optional[str] = None, effort: Optional[str] = None,
                  timeout_s: Optional[float] = None, max_retries: int = 2, client=None):
-        """Configure model, effort, timeout and retries from arguments or BOSCH_AGENT_* environment
+        """Configure model, effort, timeout and retries from arguments or FAULTLINE_AGENT_* environment
         variables.
         """
-        self.model = model or os.environ.get("BOSCH_AGENT_MODEL", DEFAULT_MODEL)
-        self.effort = effort or os.environ.get("BOSCH_AGENT_EFFORT", "high")
-        self.timeout_s = timeout_s or float(os.environ.get("BOSCH_AGENT_TIMEOUT_S", "120"))
+        self.model = model or os.environ.get("FAULTLINE_AGENT_MODEL", DEFAULT_MODEL)
+        self.effort = effort or os.environ.get("FAULTLINE_AGENT_EFFORT", "high")
+        self.timeout_s = timeout_s or float(os.environ.get("FAULTLINE_AGENT_TIMEOUT_S", "120"))
         self._client = client
         self._max_retries = max_retries
 

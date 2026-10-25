@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cut scripts/record_showcase.py footage into a <= 3-minute video that follows the judges' brief:
+"""Cut scripts/record_showcase.py footage into a <= 3-minute video that follows the demo brief:
 sandbox -> failure injected + application behaviour -> observation/metrics -> AI analysis -> safety.
 
 Usage: python scripts/edit_showcase.py [--out artifacts/showcase-video] [--max 178]

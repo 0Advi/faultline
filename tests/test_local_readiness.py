@@ -11,8 +11,8 @@ def test_operator_overrides_do_not_replace_explicit_paths(tmp_path, monkeypatch)
     local.write_text("approved: true\nexecution_enabled: true\n")
     explicit = tmp_path / "explicit.yaml"
     explicit.write_text("approved: false\nexecution_enabled: false\n")
-    monkeypatch.setenv("BOSCH_SANDBOX_SPEC", str(local))
-    monkeypatch.setenv("BOSCH_EXECUTION_POLICY", str(local))
+    monkeypatch.setenv("FAULTLINE_SANDBOX_SPEC", str(local))
+    monkeypatch.setenv("FAULTLINE_EXECUTION_POLICY", str(local))
     assert sandbox.load_spec()["approved"]
     assert catalog.load_policy()["execution_enabled"]
     assert not sandbox.load_spec(explicit)["approved"]

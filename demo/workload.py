@@ -22,7 +22,7 @@ from controller.observer.http import Shop
 
 PRODUCTS = ["66VCHSJNUP", "OLJCESPC7Z", "1YMWWN1N4O", "L9ECAV7KIM", "2ZYFJ3GM2N", "OLJCESPC7Z"]
 PICTURES = ["NationalParkFoundationExplorascope.jpg", "SolarSystemColorImager.jpg", "RedFlashlight.jpg"]
-INTL_ADDRESS = {"streetAddress": "Robert-Bosch-Platz 1", "city": "Gerlingen", "state": "BW",
+INTL_ADDRESS = {"streetAddress": "Königstraße 1", "city": "Stuttgart", "state": "BW",
                 "country": "Germany", "zipCode": "70839"}
 TIMEOUT_S = 8
 

@@ -1,4 +1,4 @@
-"""Markdown findings report (hackathon deliverable 4) for a campaign or a single run."""
+"""Markdown findings report for a campaign or a single run."""
 from __future__ import annotations
 
 import json

@@ -70,7 +70,7 @@ class LiveEnvironment:
         try:
             out = subprocess.run(
                 ["docker", "run", "--rm", "--network", self.spec["network"],
-                 "--label", "bosch.chaos.tool=ofrep", CURL_IMAGE, "-fsS", "--max-time", "5",
+                 "--label", "faultline.tool=ofrep", CURL_IMAGE, "-fsS", "--max-time", "5",
                  "-X", "POST", "-H", "Content-Type: application/json", "-d", '{"context":{}}',
                  f"http://flagd:8016/ofrep/v1/evaluate/flags/{flag}"],
                 capture_output=True, text=True, timeout=30, check=True).stdout

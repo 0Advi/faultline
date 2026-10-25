@@ -17,7 +17,7 @@ from controller.observer.telemetry import Telemetry
 from controller.schemas import SandboxRef
 from tests.fake_shop import FakeRuntime, FakeShop
 
-SANDBOX = SandboxRef(docker_context="dedicated", daemon_id="DAEMON-1", compose_project="bosch-chaos-sandbox")
+SANDBOX = SandboxRef(docker_context="dedicated", daemon_id="DAEMON-1", compose_project="faultline-sandbox")
 
 
 @pytest.fixture

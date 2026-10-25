@@ -73,7 +73,7 @@
       "type": "string"
     }
   },
-  "$id": "bosch-chaos/run/1.0.0",
+  "$id": "faultline/run/1.0.0",
   "additionalProperties": false,
   "properties": {
     "applied_state": {

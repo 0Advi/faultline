@@ -1,6 +1,6 @@
 # Implementation plan: payment chaos agent and user workbench
 
-Updated: 10 October 2026. Repository: `0Advi/bosch-chaos-engineering`.
+Updated: 10 October 2026. Repository: `0Advi/faultline`.
 
 This is a task backlog, not a record of implemented capabilities. Unchecked
 tasks remain pending. Existing startup evidence is described in

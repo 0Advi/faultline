@@ -2,9 +2,9 @@
 
 > The sections below describe the foundation's design and acceptance plan.
 
-# Bosch Chaos Engineering: project brief for judges
+# Faultline: project brief
 
-Repository: https://github.com/0Advi/bosch-chaos-engineering
+Repository: https://github.com/0Advi/faultline
 
 This brief describes the intended project after the core implementation plan
 P0–P7 passes its acceptance checks. It does not claim those tasks are complete.
@@ -65,7 +65,7 @@ the tests. Payments are synthetic. No bank or real payment processor is involved
 This is the intended layout, not a claim that every directory exists today.
 
 ```text
-bosch-chaos-engineering/
+faultline/
 ├── vendor/opentelemetry-demo/    Pinned upstream application
 ├── deploy/                      Compose configuration and sandbox-owned flags
 ├── controller/                  Our experiment and improvement workflow
@@ -188,7 +188,7 @@ Payment retries require special care: the current fake payment implementation
 has no durable ledger or idempotency key. Lost-response/duplicate-transaction
 evaluation needs those additions before retry safety can be demonstrated.
 
-## Planned judge demonstration
+## Planned demonstration
 
 1. Show the public repository and reproducible setup.
 2. Show a healthy shop checkout and measured baseline.

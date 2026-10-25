@@ -23,15 +23,15 @@ budgets requires new baselines and a newly derived payment policy.
 
 Host-specific approval is stored in ignored `config/sandbox.local.yaml` and
 `config/execution_policy.local.yaml`. The launcher supplies these explicitly
-through `BOSCH_SANDBOX_SPEC` and `BOSCH_EXECUTION_POLICY`. Repository defaults
+through `FAULTLINE_SANDBOX_SPEC` and `FAULTLINE_EXECUTION_POLICY`. Repository defaults
 remain disabled. A different Docker daemon, unrelated containers, missing
 services, stale baseline, changed flags, or missing measured policy blocks a run.
 
 For CLI operations with the same local configuration:
 
 ```sh
-export BOSCH_SANDBOX_SPEC="$PWD/config/sandbox.local.yaml"
-export BOSCH_EXECUTION_POLICY="$PWD/config/execution_policy.local.yaml"
+export FAULTLINE_SANDBOX_SPEC="$PWD/config/sandbox.local.yaml"
+export FAULTLINE_EXECUTION_POLICY="$PWD/config/execution_policy.local.yaml"
 make preflight
 ```
 

@@ -1,17 +1,17 @@
-# Bosch overlay for the pinned core + observability deployment.
+# Faultline overlay for the pinned core + observability deployment.
 # Requires Docker Compose 2.24.4+ for reset/override tags.
 networks:
   default:
-    name: bosch-chaos-sandbox
+    name: faultline-sandbox
 services:
   ad:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   cart:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   checkout:
     deploy:
       resources:
@@ -19,45 +19,45 @@ services:
           memory: 128M
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   currency:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   email:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   frontend:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   frontend-proxy:
     container_name: !reset null
     ports: !override
-      - "127.0.0.1:${BOSCH_APP_PORT:-8080}:8080"
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+      - "127.0.0.1:${FAULTLINE_APP_PORT:-8080}:8080"
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   image-provider:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   load-generator:
     command: ["--locustfile", "/usr/src/app/locust.sandbox.py"]
     volumes:
       - ../../deploy/locust.sandbox.py:/usr/src/app/locust.sandbox.py:ro
     environment:
-      - LOCUST_BROWSER_TRAFFIC_ENABLED=${BOSCH_BROWSER_TRAFFIC_ENABLED:-false}
+      - LOCUST_BROWSER_TRAFFIC_ENABLED=${FAULTLINE_BROWSER_TRAFFIC_ENABLED:-false}
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   payment:
     volumes:
-      - ../../deploy/health-bin/payment-health:/bosch/payment-health:ro
+      - ../../deploy/health-bin/payment-health:/faultline/payment-health:ro
     healthcheck:
-      test: ["CMD", "/bosch/payment-health"]
+      test: ["CMD", "/faultline/payment-health"]
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   product-catalog:
     deploy:
       resources:
@@ -65,19 +65,19 @@ services:
           memory: 128M
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   quote:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   recommendation:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   shipping:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   # P0-03: flags come from the sandbox-owned copy; the controller is the only
   # writer. flagd-ui mounts it read-only, so UI edits and its random scheduler
   # cannot change flags during a run.
@@ -89,13 +89,13 @@ services:
   flagd-ui:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
     volumes: !override
       - ../../deploy/flagd:/app/data:ro
   telemetry-docs:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
   astronomy-db:
     container_name: !reset null
     ports: !reset []
@@ -118,21 +118,21 @@ services:
     ports: !reset []
   grafana:
     environment:
-      - GF_SERVER_ROOT_URL=http://localhost:${BOSCH_APP_PORT:-8080}/grafana/
+      - GF_SERVER_ROOT_URL=http://localhost:${FAULTLINE_APP_PORT:-8080}/grafana/
     container_name: !reset null
     ports: !reset []
   prometheus:
     container_name: !reset null
     ports: !override
-      - "127.0.0.1:${BOSCH_METRICS_PORT:-9090}:9090"
+      - "127.0.0.1:${FAULTLINE_METRICS_PORT:-9090}:9090"
   opensearch:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}
     healthcheck:
       start_period: 180s
       retries: 20
   opamp-server:
     container_name: !reset null
     ports: !reset []
-    pull_policy: ${BOSCH_PULL_POLICY:-missing}
+    pull_policy: ${FAULTLINE_PULL_POLICY:-missing}

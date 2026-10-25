@@ -11,7 +11,7 @@ SPEC = sandbox.load_spec()
 def make_snapshot(root):
     """A Docker snapshot of a correctly scoped sandbox under a temp root."""
     containers = [{
-        "id": f"{name}-id", "name": f"bosch-chaos-sandbox-{name}-1",
+        "id": f"{name}-id", "name": f"faultline-sandbox-{name}-1",
         "project": SPEC["compose_project"], "service": name, "state": "running",
         "privileged": False, "network_mode": SPEC["network"], "networks": [SPEC["network"]],
         "mounts": [{"type": "bind", "source": str(root / "deploy" / "flagd"),

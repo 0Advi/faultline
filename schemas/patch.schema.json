@@ -1,5 +1,5 @@
 {
-  "$id": "bosch-chaos/patch/1.0.0",
+  "$id": "faultline/patch/1.0.0",
   "additionalProperties": false,
   "properties": {
     "affected_files": {

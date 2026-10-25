@@ -18,7 +18,7 @@ DIFF = b'''diff --git a/src/checkout/main.go b/src/checkout/main.go
 '''
 BASE = 'a' * 40
 DIGEST = 'b' * 64
-SANDBOX = SandboxRef(docker_context='dedicated', daemon_id='daemon-approved', compose_project='bosch-chaos-sandbox')
+SANDBOX = SandboxRef(docker_context='dedicated', daemon_id='daemon-approved', compose_project='faultline-sandbox')
 PATCH = Patch(patch_id='patch-test', base_revision=BASE, diff_sha256=DIGEST,
               affected_files=['src/checkout/main.go'], rationale='Test exact revision approval',
               image_digests={'checkout':'demo@sha256:'+'c'*64},

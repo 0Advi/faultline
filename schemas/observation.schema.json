@@ -1,5 +1,5 @@
 {
-  "$id": "bosch-chaos/observation/1.0.0",
+  "$id": "faultline/observation/1.0.0",
   "additionalProperties": false,
   "properties": {
     "at": {

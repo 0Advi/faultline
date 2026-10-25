@@ -33,7 +33,7 @@
       "type": "string"
     }
   },
-  "$id": "bosch-chaos/event/1.0.0",
+  "$id": "faultline/event/1.0.0",
   "additionalProperties": false,
   "properties": {
     "at": {

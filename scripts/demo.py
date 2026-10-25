@@ -12,7 +12,7 @@ from urllib.request import urlopen
 ROOT = Path(__file__).resolve().parents[1]
 UPSTREAM = ROOT / "vendor" / "opentelemetry-demo"
 REVISION = "dedc0178918e260823323b8d95005a8cb924b007"
-PROJECT = "bosch-chaos-sandbox"
+PROJECT = "faultline-sandbox"
 EXPECTED = {
     "ad", "cart", "checkout", "currency", "email", "frontend",
     "frontend-proxy", "image-provider", "load-generator", "payment",
@@ -74,7 +74,7 @@ def validate(source_build=False):
             raise RuntimeError(f"Unexpected host access on {name}.")
         if service.get("build"):
             policy = "build" if source_build else "missing"
-            prefixes = ("bosch-local/demo:3.1.0-source-",) if source_build else (
+            prefixes = ("faultline-local/demo:3.1.0-source-",) if source_build else (
                 "ghcr.io/open-telemetry/demo:3.1.0-", "docker.io/otel/demo:3.1.0-")
             if service.get("pull_policy") != policy or not service["image"].startswith(prefixes):
                 raise RuntimeError(f"Image/version policy differs from the selected mode for {name}.")
@@ -109,8 +109,8 @@ def smoke():
     """Smoke-test the running shop and Prometheus: home page, products, recommendations and
     readiness.
     """
-    app = f"http://127.0.0.1:{host_port('BOSCH_APP_PORT', 8080)}"
-    metrics = f"http://127.0.0.1:{host_port('BOSCH_METRICS_PORT', 9090)}"
+    app = f"http://127.0.0.1:{host_port('FAULTLINE_APP_PORT', 8080)}"
+    metrics = f"http://127.0.0.1:{host_port('FAULTLINE_METRICS_PORT', 9090)}"
     for url in [app + "/", app + "/api/products",
                 app + "/api/recommendations?currencyCode=USD", metrics + "/-/ready"]:
         with urlopen(url, timeout=10) as response:
@@ -133,7 +133,7 @@ def main():
         if action == "smoke":
             smoke()
             return 0
-        source_build = action == "build" or os.environ.get("BOSCH_SOURCE_BUILD") == "true"
+        source_build = action == "build" or os.environ.get("FAULTLINE_SOURCE_BUILD") == "true"
         validate(source_build)
         args = {
             "build": ["build"],

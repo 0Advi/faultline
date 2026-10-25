@@ -19,7 +19,7 @@ P1/P2; those requirements are not claimed as demonstrated here.
 
 ## Integration corrections
 
-- Restored the judge brief and its README link, which the source branch deleted.
+- Restored the project brief and its README link, which the source branch deleted.
 - Blocked live runner entry regardless of configuration. The draft runner lacks
   an independent watchdog, fresh measured baseline and protected-path aborts.
 - Blocked the verifier's flag-mutation roundtrip before file or Docker access.

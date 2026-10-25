@@ -419,7 +419,7 @@ def make_handler(api: ControllerAPI, port: int):
     class Handler(BaseHTTPRequestHandler):
         """HTTP handler for the controller API (and the workbench bridge when attached)."""
         protocol_version = "HTTP/1.1"
-        server_version = "bosch-chaos-controller"
+        server_version = "faultline-controller"
 
         def log_message(self, fmt, *args):
             """Send access-log lines to the API's logger."""

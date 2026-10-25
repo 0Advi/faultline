@@ -118,7 +118,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/baseline/1.0.0",
+  "$id": "faultline/baseline/1.0.0",
   "additionalProperties": false,
   "properties": {
     "baseline_id": {

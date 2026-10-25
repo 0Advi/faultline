@@ -127,7 +127,7 @@ def test_live_run_blocked_without_gates(tools):
 def test_grpc_argv_is_fixed_except_validated_payload():
     """The grpcurl command is fixed; only the validated payload varies."""
     cap = Catalog().get("payment-amount-mismatch")
-    argv = adapters.grpc_argv(cap, {"mode": "unknown_currency"}, "bosch-chaos-sandbox", "run-1", 10)
+    argv = adapters.grpc_argv(cap, {"mode": "unknown_currency"}, "faultline-sandbox", "run-1", 10)
     assert argv[:3] == ["docker", "run", "--rm"]
     assert "--privileged" not in argv and "/var/run/docker.sock" not in " ".join(argv)
     assert json.loads(argv[argv.index("-d") + 1])["amount"]["currencyCode"] == "XXX"

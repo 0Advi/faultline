@@ -6,7 +6,7 @@ policy_version: "p2-2026-10-10"
 execution_enabled: false
 live_capabilities: []
 max_duration_seconds: 30
-# The app URL comes from BOSCH_APP_PORT (deploy/demo.env, deploy/demo.local.env).
+# The app URL comes from FAULTLINE_APP_PORT (deploy/demo.env, deploy/demo.local.env).
 # Probe timeouts, intervals, thresholds and recovery checks come from the measured
 # config/payment_policy.yaml (make derive-policy); a live run is blocked without it.
 flag_propagation_timeout_seconds: 15  # flagd must serve the new value within this

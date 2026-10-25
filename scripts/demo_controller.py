@@ -27,7 +27,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=ROOT/'artifacts/results/simulated-demo.json')
     args = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix='bosch-simulated-') as temporary:
+    with tempfile.TemporaryDirectory(prefix='faultline-simulated-') as temporary:
         directory = Path(temporary)
         flag = directory/'demo.flagd.json'
         shutil.copy(FLAG_FILE, flag)

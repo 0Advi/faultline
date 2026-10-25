@@ -196,7 +196,7 @@
       "type": "object"
     }
   },
-  "$id": "bosch-chaos/runreport/1.0.0",
+  "$id": "faultline/runreport/1.0.0",
   "additionalProperties": false,
   "description": "Deterministic report rebuilt from saved run evidence only (P3-01).",
   "properties": {

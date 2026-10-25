@@ -1,7 +1,7 @@
 # Dedicated sandbox (P0-01)
 
 Faults may only run on a Docker daemon that hosts nothing except the
-`bosch-chaos-sandbox` Compose project. A laptop running other containers, or
+`faultline-sandbox` Compose project. A laptop running other containers, or
 the shared preview, is never approved isolation.
 
 ## Provision

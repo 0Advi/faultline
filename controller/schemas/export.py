@@ -18,7 +18,7 @@ def main(check: bool = False) -> int:
     stale = []
     for name in MODELS:
         schema = getattr(contracts, name).model_json_schema()
-        schema["$id"] = f"bosch-chaos/{name.lower()}/{contracts.SCHEMA_VERSION}"
+        schema["$id"] = f"faultline/{name.lower()}/{contracts.SCHEMA_VERSION}"
         text = json.dumps(schema, indent=2, sort_keys=True) + "\n"
         path = OUT / f"{name.lower()}.schema.json"
         if check:

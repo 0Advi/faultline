@@ -9,7 +9,7 @@
     "vendor/opentelemetry-demo/compose.observability.yaml",
     "deploy/compose.sandbox.yaml"
   ],
-  "default_network_name": "bosch-chaos-sandbox",
+  "default_network_name": "faultline-sandbox",
   "limitations": [
     "No startup or runtime observation performed.",
     "Declared startup dependencies are separate from inferred runtime calls.",
@@ -17,7 +17,7 @@
     "Runtime calls are a partial static seed: flagd calls, telemetry emission, and all proxy UI routes are not expanded.",
     "Kafka edges describe producer/consumer dependencies; async trace linkage is not established.",
     "Layer-specific edges are not all active in minimal mode.",
-    "Upstream fixed container names and host port bindings are replaced by the Bosch deployment overlay. Collector full/Kafka configuration is not loaded.",
+    "Upstream fixed container names and host port bindings are replaced by the Faultline deployment overlay. Collector full/Kafka configuration is not loaded.",
     "Deployment source was changed to official release 3.1.0 after comparing its core and observability configuration against the initially inspected main revision. Runtime edges remain unobserved."
   ],
   "nodes": [

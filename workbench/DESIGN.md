@@ -1,6 +1,6 @@
 # Workbench design
 
-Visual thesis: a bright, quiet operator workspace for a hackathon team reviewing
+Visual thesis: a bright, quiet operator workspace for an engineering team reviewing
 experiments together on laptops in a meeting room, with ink text and muted teal actions.
 Content plan: navigation, planning workspace, readiness inspector, run timeline,
 evidence/history, then exact patch review and replay comparison.

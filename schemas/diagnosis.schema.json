@@ -17,7 +17,7 @@
       "type": "string"
     }
   },
-  "$id": "bosch-chaos/diagnosis/1.0.0",
+  "$id": "faultline/diagnosis/1.0.0",
   "additionalProperties": false,
   "properties": {
     "affected_paths": {

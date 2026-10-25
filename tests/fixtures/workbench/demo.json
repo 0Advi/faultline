@@ -5,7 +5,7 @@
       "sandbox": {
         "docker_context": "default",
         "daemon_id": "unset",
-        "compose_project": "bosch-chaos-sandbox"
+        "compose_project": "faultline-sandbox"
       },
       "execution_enabled": false,
       "live_capabilities": [],
